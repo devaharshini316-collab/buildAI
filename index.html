@@ -1,0 +1,3050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TrafficMind AI — Smart Traffic Management Assistant</title>
+  <meta name="description" content="Intelligent assistant and interactive dashboard for smart traffic management, road safety, and sustainable transportation. Built for student hackathons.">
+  <style>
+    /* ==========================================================================
+       1. CSS VARIABLES & THEMES
+       Dark Navy theme with Cyan, Blue, and Purple accents (Default)
+       Light theme available via data-theme="light"
+       ========================================================================== */
+    :root {
+      --bg-primary: #0a0f1d;
+      --bg-secondary: #0f172a;
+      --bg-card: rgba(15, 23, 42, 0.75);
+      --bg-card-hover: rgba(30, 41, 59, 0.85);
+      --bg-input: #1e293b;
+      --border-color: rgba(255, 255, 255, 0.08);
+      --border-glow: rgba(34, 211, 238, 0.3);
+
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+
+      --cyan: #06b6d4;
+      --cyan-glow: #22d3ee;
+      --blue: #3b82f6;
+      --blue-glow: #60a5fa;
+      --purple: #8b5cf6;
+      --purple-glow: #a855f7;
+      --emerald: #10b981;
+      --amber: #f59e0b;
+      --rose: #f43f5e;
+
+      --user-msg-bg: linear-gradient(135deg, #2563eb, #7c3aed);
+      --bot-msg-bg: rgba(30, 41, 59, 0.85);
+      --bot-msg-border: rgba(56, 189, 248, 0.2);
+
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+      --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.5);
+      --shadow-glow: 0 0 25px rgba(34, 211, 238, 0.2);
+
+      --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f1f5f9;
+      --bg-secondary: #e2e8f0;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-card-hover: #ffffff;
+      --bg-input: #ffffff;
+      --border-color: rgba(15, 23, 42, 0.1);
+      --border-glow: rgba(6, 182, 212, 0.4);
+
+      --text-primary: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #64748b;
+
+      --user-msg-bg: linear-gradient(135deg, #2563eb, #6366f1);
+      --bot-msg-bg: #ffffff;
+      --bot-msg-border: rgba(6, 182, 212, 0.25);
+
+      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --shadow-lg: 0 16px 36px rgba(15, 23, 42, 0.12);
+      --shadow-glow: 0 0 20px rgba(6, 182, 212, 0.15);
+    }
+
+    /* ==========================================================================
+       2. RESET & BASE STYLES
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.6;
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+
+    /* Ambient background glowing orbs */
+    .bg-orbs {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.15;
+      animation: float 20s infinite alternate ease-in-out;
+    }
+
+    .orb-1 {
+      top: -10%;
+      left: 15%;
+      width: 450px;
+      height: 450px;
+      background: var(--cyan);
+    }
+
+    .orb-2 {
+      top: 40%;
+      right: -5%;
+      width: 500px;
+      height: 500px;
+      background: var(--purple);
+      animation-delay: -5s;
+    }
+
+    .orb-3 {
+      bottom: -10%;
+      left: 20%;
+      width: 400px;
+      height: 400px;
+      background: var(--blue);
+      animation-delay: -10s;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px) scale(1); }
+      100% { transform: translateY(40px) scale(1.08); }
+    }
+
+    /* Standard container */
+    .container {
+      width: 100%;
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 0 1.25rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    a {
+      color: var(--cyan);
+      text-decoration: none;
+      transition: var(--transition);
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* ==========================================================================
+       3. NAVIGATION HEADER
+       ========================================================================== */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(10, 15, 29, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.85rem 0;
+      transition: var(--transition);
+    }
+
+    [data-theme="light"] .navbar {
+      background: rgba(241, 245, 249, 0.88);
+    }
+
+    .nav-container {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+      color: inherit;
+    }
+
+    .brand-icon-wrapper {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+      flex-shrink: 0;
+    }
+
+    .brand-icon-wrapper svg {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      background: linear-gradient(90deg, #ffffff, var(--cyan-glow));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    [data-theme="light"] .brand-text h1 {
+      background: linear-gradient(90deg, #0f172a, var(--blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-text p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #34d399;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      50% { transform: scale(1.2); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.7; }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.45rem 0.95rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: var(--transition);
+      background: transparent;
+      color: var(--text-primary);
+      text-decoration: none;
+      user-select: none;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: var(--cyan);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+      transform: translateY(-1px);
+    }
+
+    .btn-icon-only {
+      width: 38px;
+      height: 38px;
+      padding: 0;
+      border-radius: var(--radius-md);
+    }
+
+    /* ==========================================================================
+       4. HERO & WELCOME SECTION
+       ========================================================================== */
+    .hero-section {
+      padding: 2.5rem 0 1.5rem;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.35rem 0.9rem;
+      border-radius: var(--radius-full);
+      background: rgba(34, 211, 238, 0.1);
+      border: 1px solid rgba(34, 211, 238, 0.25);
+      color: var(--cyan-glow);
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    .hero-title {
+      font-size: clamp(1.85rem, 4vw, 2.75rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.2;
+      margin-bottom: 0.85rem;
+    }
+
+    .hero-title .gradient-text {
+      background: linear-gradient(135deg, var(--cyan-glow) 0%, #38bdf8 50%, var(--purple-glow) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(0.95rem, 2vw, 1.15rem);
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 2rem;
+      line-height: 1.6;
+    }
+
+    /* Interactive Stats Cards */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-md);
+    }
+
+    .stat-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .stat-icon.cyan { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.15); color: var(--blue-glow); }
+    .stat-icon.purple { background: rgba(139, 92, 246, 0.15); color: var(--purple-glow); }
+
+    .stat-icon svg {
+      width: 26px;
+      height: 26px;
+      fill: currentColor;
+    }
+
+    .stat-content {
+      flex: 1;
+    }
+
+    .stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      line-height: 1.2;
+      color: var(--text-primary);
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 0.2rem;
+    }
+
+    .stat-subtext {
+      font-size: 0.7rem;
+      color: var(--cyan);
+      font-weight: 600;
+      margin-top: 0.25rem;
+      display: block;
+    }
+
+    .stats-disclaimer {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: -0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    /* ==========================================================================
+       5. MAIN INTERACTIVE LAYOUT (CHATBOT & SIMULATION)
+       ========================================================================== */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+      margin-bottom: 3rem;
+    }
+
+    @media (min-width: 1024px) {
+      .dashboard-grid {
+        grid-template-columns: 1.15fr 0.85fr;
+      }
+    }
+
+    /* Glass card container */
+    .glass-panel {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* ==========================================================================
+       6. CHATBOT INTERFACE
+       ========================================================================== */
+    .chat-header {
+      padding: 1rem 1.25rem;
+      background: rgba(15, 23, 42, 0.6);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    [data-theme="light"] .chat-header {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .chat-bot-info {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .avatar-wrapper {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--cyan), var(--purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      flex-shrink: 0;
+    }
+
+    .avatar-wrapper svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    .online-indicator {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      width: 10px;
+      height: 10px;
+      background: var(--emerald);
+      border: 2px solid var(--bg-secondary);
+      border-radius: 50%;
+    }
+
+    .chat-bot-text h3 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-bot {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--cyan-glow);
+      font-size: 0.65rem;
+      padding: 0.15rem 0.45rem;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    .chat-bot-text p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .chat-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .msg-counter-badge {
+      font-size: 0.75rem;
+      background: var(--bg-input);
+      color: var(--text-secondary);
+      border: 1px solid var(--border-color);
+      padding: 0.25rem 0.65rem;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    /* Chat Messages Box */
+    .chat-messages {
+      height: 480px;
+      overflow-y: auto;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    /* Custom scrollbar */
+    .chat-messages::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-messages::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
+    }
+    [data-theme="light"] .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .message {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 85%;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user-message {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message.bot-message {
+      align-self: flex-start;
+    }
+
+    .msg-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .user-message .msg-avatar {
+      background: var(--purple);
+      color: #ffffff;
+    }
+
+    .bot-message .msg-avatar {
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      color: #ffffff;
+    }
+
+    .msg-body {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .user-message .msg-body {
+      align-items: flex-end;
+    }
+
+    .bot-message .msg-body {
+      align-items: flex-start;
+    }
+
+    .msg-bubble {
+      padding: 0.85rem 1.1rem;
+      border-radius: var(--radius-md);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      position: relative;
+      word-break: break-word;
+    }
+
+    .user-message .msg-bubble {
+      background: var(--user-msg-bg);
+      color: #ffffff;
+      border-bottom-right-radius: 2px;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+    }
+
+    .bot-message .msg-bubble {
+      background: var(--bot-msg-bg);
+      border: 1px solid var(--bot-msg-border);
+      color: var(--text-primary);
+      border-bottom-left-radius: 2px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .bot-message .msg-bubble p {
+      margin-bottom: 0.6rem;
+    }
+    .bot-message .msg-bubble p:last-child {
+      margin-bottom: 0;
+    }
+
+    .bot-message .msg-bubble ul,
+    .bot-message .msg-bubble ol {
+      margin-left: 1.25rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .bot-message .msg-bubble li {
+      margin-bottom: 0.35rem;
+    }
+
+    .bot-message .msg-bubble strong {
+      color: var(--cyan-glow);
+    }
+    [data-theme="light"] .bot-message .msg-bubble strong {
+      color: var(--blue);
+    }
+
+    .code-block {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.75rem;
+      font-family: monospace;
+      font-size: 0.8rem;
+      margin: 0.5rem 0;
+      white-space: pre-wrap;
+      color: #a5f3fc;
+    }
+
+    [data-theme="light"] .code-block {
+      background: #e2e8f0;
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+
+    .msg-time {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+      padding: 0 0.2rem;
+    }
+
+    /* Typing indicator */
+    .typing-indicator {
+      display: none;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.75rem 1rem;
+      background: var(--bot-msg-bg);
+      border: 1px solid var(--bot-msg-border);
+      border-radius: var(--radius-md);
+      border-bottom-left-radius: 2px;
+      width: fit-content;
+      margin-left: 40px;
+    }
+
+    .typing-indicator.active {
+      display: flex;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      background-color: var(--cyan);
+      border-radius: 50%;
+      animation: typingBounce 1.4s infinite ease-in-out both;
+    }
+
+    .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+    .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+    .typing-dot:nth-child(3) { animation-delay: 0s; }
+
+    @keyframes typingBounce {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40% { transform: scale(1); opacity: 1; }
+    }
+
+    /* Suggested Questions Section */
+    .suggested-section {
+      padding: 0.75rem 1.25rem 0.5rem;
+      background: rgba(15, 23, 42, 0.4);
+      border-top: 1px solid var(--border-color);
+    }
+
+    [data-theme="light"] .suggested-section {
+      background: rgba(248, 250, 252, 0.75);
+    }
+
+    .suggested-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .suggested-chips-wrapper {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding-bottom: 0.5rem;
+      scrollbar-width: thin;
+    }
+
+    .suggested-chips-wrapper::-webkit-scrollbar {
+      height: 4px;
+    }
+    .suggested-chips-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 4px;
+    }
+
+    .chip-btn {
+      white-space: nowrap;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      font-size: 0.78rem;
+      font-weight: 500;
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    .chip-btn:hover {
+      background: rgba(6, 182, 212, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan-glow);
+      transform: translateY(-1px);
+    }
+
+    /* Chat Input Form */
+    .chat-input-area {
+      padding: 0.9rem 1.25rem;
+      background: rgba(15, 23, 42, 0.75);
+      border-top: 1px solid var(--border-color);
+    }
+
+    [data-theme="light"] .chat-input-area {
+      background: #ffffff;
+    }
+
+    .chat-form {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-end;
+    }
+
+    .input-wrapper {
+      flex: 1;
+      position: relative;
+    }
+
+    .chat-input {
+      width: 100%;
+      min-height: 46px;
+      max-height: 120px;
+      padding: 0.75rem 1rem;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 0.9rem;
+      line-height: 1.4;
+      resize: none;
+      outline: none;
+      transition: var(--transition);
+    }
+
+    .chat-input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.2);
+    }
+
+    .input-hint {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      margin-top: 0.35rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .send-btn {
+      width: 46px;
+      height: 46px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition);
+      box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);
+    }
+
+    .send-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(6, 182, 212, 0.45);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .send-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* ==========================================================================
+       7. TRAFFIC SIMULATION DASHBOARD (SIDE PANEL)
+       ========================================================================== */
+    .sim-panel {
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .sim-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .sim-header h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .sim-tag {
+      font-size: 0.7rem;
+      background: rgba(139, 92, 246, 0.15);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: var(--purple-glow);
+      padding: 0.2rem 0.55rem;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Simulation selector tabs */
+    .sim-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      background: var(--bg-input);
+      padding: 0.35rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+    }
+
+    .sim-tab-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.55rem 0.35rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      text-align: center;
+    }
+
+    .sim-tab-btn:hover {
+      color: var(--text-primary);
+    }
+
+    .sim-tab-btn.active {
+      background: rgba(255, 255, 255, 0.1);
+      color: #ffffff;
+      box-shadow: var(--shadow-sm);
+    }
+
+    [data-theme="light"] .sim-tab-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+    }
+
+    .sim-tab-btn.tab-low.active {
+      border-bottom: 2px solid var(--emerald);
+      color: #34d399;
+    }
+    .sim-tab-btn.tab-mod.active {
+      border-bottom: 2px solid var(--amber);
+      color: #fbbf24;
+    }
+    .sim-tab-btn.tab-heavy.active {
+      border-bottom: 2px solid var(--rose);
+      color: #f87171;
+    }
+
+    /* Animated Road Visualization */
+    .road-simulation-viewport {
+      background: #090d16;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 180px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-around;
+    }
+
+    .road-lane {
+      position: relative;
+      height: 44px;
+      background: #151d2d;
+      border-radius: 6px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.2);
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.2);
+      overflow: hidden;
+    }
+
+    .road-lane:first-child {
+      border-top: 2px solid #64748b;
+    }
+    .road-lane:last-child {
+      border-bottom: 2px solid #64748b;
+    }
+
+    .lane-marking {
+      position: absolute;
+      top: 50%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: repeating-linear-gradient(90deg, #f1f5f9 0, #f1f5f9 20px, transparent 20px, transparent 40px);
+      transform: translateY(-50%);
+      opacity: 0.35;
+    }
+
+    /* Animated CSS Vehicle */
+    .vehicle {
+      position: absolute;
+      top: 7px;
+      height: 30px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+      animation: driveRight 6s linear infinite;
+    }
+
+    .vehicle.car-1 {
+      width: 54px;
+      background: linear-gradient(90deg, #0284c7, #38bdf8);
+      animation-duration: var(--sim-speed, 5s);
+      animation-delay: 0s;
+    }
+
+    .vehicle.car-2 {
+      width: 62px;
+      background: linear-gradient(90deg, #7c3aed, #a855f7);
+      animation-duration: var(--sim-speed, 5s);
+      animation-delay: -2.5s;
+    }
+
+    .vehicle.car-3 {
+      width: 48px;
+      background: linear-gradient(90deg, #059669, #34d399);
+      animation-duration: calc(var(--sim-speed, 5s) * 0.95);
+      animation-delay: -1.2s;
+    }
+
+    .vehicle.emergency {
+      width: 66px;
+      background: linear-gradient(90deg, #dc2626, #f87171);
+      box-shadow: 0 0 14px rgba(239, 68, 68, 0.8);
+      animation-duration: calc(var(--sim-speed, 5s) * 0.75);
+      animation-delay: -3.8s;
+    }
+
+    @keyframes driveRight {
+      0% { left: -80px; }
+      100% { left: 100%; }
+    }
+
+    /* Traffic Light Widget */
+    .sim-status-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      background: var(--bg-input);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1rem;
+      border-left: 4px solid var(--emerald);
+      transition: var(--transition);
+    }
+
+    .sim-status-banner.status-low {
+      border-left-color: var(--emerald);
+    }
+    .sim-status-banner.status-mod {
+      border-left-color: var(--amber);
+    }
+    .sim-status-banner.status-heavy {
+      border-left-color: var(--rose);
+    }
+
+    .status-text h4 {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .status-text p {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.15rem;
+    }
+
+    /* Traffic metrics cards */
+    .sim-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .metric-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 0.75rem;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .metric-value {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-top: 0.2rem;
+    }
+
+    .metric-desc {
+      font-size: 0.68rem;
+      color: var(--cyan);
+      margin-top: 0.15rem;
+    }
+
+    /* Action suggestion box */
+    .sim-recommendation {
+      background: rgba(6, 182, 212, 0.08);
+      border: 1px solid rgba(6, 182, 212, 0.2);
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1rem;
+    }
+
+    .sim-rec-title {
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: var(--cyan-glow);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .sim-rec-desc {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .sim-disclaimer {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+      font-style: italic;
+    }
+
+    /* ==========================================================================
+       8. QUICK-ACCESS TOPIC CARDS SECTION
+       ========================================================================== */
+    .section-title-wrap {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .section-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--cyan);
+      margin-bottom: 0.35rem;
+      display: block;
+    }
+
+    .section-title {
+      font-size: clamp(1.4rem, 3vw, 1.95rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .section-desc {
+      font-size: 0.92rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0.4rem auto 0;
+    }
+
+    .topics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 3.5rem;
+    }
+
+    .topic-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .topic-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--cyan);
+      box-shadow: 0 10px 25px rgba(6, 182, 212, 0.15);
+    }
+
+    .topic-top {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .topic-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .topic-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .topic-card:nth-child(1) .topic-icon { background: rgba(6, 182, 212, 0.15); color: var(--cyan); }
+    .topic-card:nth-child(2) .topic-icon { background: rgba(16, 185, 129, 0.15); color: var(--emerald); }
+    .topic-card:nth-child(3) .topic-icon { background: rgba(239, 68, 68, 0.15); color: var(--rose); }
+    .topic-card:nth-child(4) .topic-icon { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
+    .topic-card:nth-child(5) .topic-icon { background: rgba(139, 92, 246, 0.15); color: var(--purple-glow); }
+    .topic-card:nth-child(6) .topic-icon { background: rgba(59, 130, 246, 0.15); color: var(--blue-glow); }
+
+    .topic-card h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.35rem;
+    }
+
+    .topic-card p {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+
+    .topic-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--cyan);
+      margin-top: 1.25rem;
+    }
+
+    .topic-cta svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+      transition: transform 0.2s ease;
+    }
+
+    .topic-card:hover .topic-cta svg {
+      transform: translateX(4px);
+    }
+
+    /* ==========================================================================
+       9. SMART TRAFFIC SOLUTIONS SECTION
+       ========================================================================== */
+    .solutions-section {
+      margin-bottom: 3.5rem;
+    }
+
+    .solutions-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .solution-card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.6rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .solution-card:hover {
+      border-color: var(--border-glow);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-3px);
+    }
+
+    .solution-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .sol-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(139, 92, 246, 0.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--cyan-glow);
+      flex-shrink: 0;
+    }
+
+    .sol-icon svg {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    .solution-header h4 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .solution-body {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .solution-rec-box {
+      background: var(--bg-input);
+      border-left: 3px solid var(--cyan);
+      border-radius: 4px;
+      padding: 0.65rem 0.85rem;
+      font-size: 0.8rem;
+      color: var(--text-primary);
+    }
+
+    .solution-rec-box strong {
+      color: var(--cyan-glow);
+      display: block;
+      margin-bottom: 0.15rem;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    [data-theme="light"] .solution-rec-box strong {
+      color: var(--blue);
+    }
+
+    .btn-ask-sol {
+      align-self: flex-start;
+      font-size: 0.78rem;
+      color: var(--cyan);
+      background: transparent;
+      border: 1px dashed var(--border-color);
+      padding: 0.35rem 0.75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: var(--transition);
+    }
+
+    .btn-ask-sol:hover {
+      background: rgba(6, 182, 212, 0.1);
+      border-color: var(--cyan);
+      border-style: solid;
+    }
+
+    /* ==========================================================================
+       10. ABOUT & HACKATHON DEMO SECTION
+       ========================================================================== */
+    .about-section {
+      margin-bottom: 4rem;
+    }
+
+    .about-card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.8));
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-md);
+    }
+
+    [data-theme="light"] .about-card {
+      background: #ffffff;
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+
+    .about-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.75rem;
+    }
+
+    @media (min-width: 768px) {
+      .about-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .about-col h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 0.75rem;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .about-col p {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 0.85rem;
+    }
+
+    .limitations-box {
+      background: rgba(245, 158, 11, 0.08);
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+    }
+
+    .limitations-box strong {
+      color: var(--amber);
+      display: block;
+      margin-bottom: 0.35rem;
+      font-size: 0.85rem;
+    }
+
+    .pitch-badge-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+
+    .pitch-tag {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: var(--blue-glow);
+      font-size: 0.75rem;
+      padding: 0.3rem 0.65rem;
+      border-radius: var(--radius-full);
+      font-weight: 600;
+    }
+
+    /* ==========================================================================
+       11. FOOTER
+       ========================================================================== */
+    .app-footer {
+      background: rgba(10, 15, 29, 0.95);
+      border-top: 1px solid var(--border-color);
+      padding: 2.5rem 0 2rem;
+      margin-top: auto;
+      text-align: center;
+    }
+
+    [data-theme="light"] .app-footer {
+      background: #e2e8f0;
+      border-top-color: #cbd5e1;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.65rem;
+      margin-bottom: 0.75rem;
+      font-weight: 800;
+      font-size: 1.15rem;
+    }
+
+    .footer-brand svg {
+      width: 22px;
+      height: 22px;
+      fill: var(--cyan);
+    }
+
+    .footer-tagline {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+    }
+
+    .footer-subtagline {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .footer-badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-full);
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: var(--bg-card);
+      border: 1px solid var(--cyan);
+      color: var(--text-primary);
+      padding: 0.75rem 1.25rem;
+      border-radius: var(--radius-md);
+      box-shadow: var(--shadow-lg);
+      font-size: 0.85rem;
+      z-index: 1000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Accessibility focus rings */
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible,
+    a:focus-visible {
+      outline: 2px solid var(--cyan);
+      outline-offset: 2px;
+    }
+
+    /* Mobile Responsiveness adjustments */
+    @media (max-width: 640px) {
+      .navbar { padding: 0.65rem 0; }
+      .brand-text p { display: none; }
+      .status-badge { display: none; }
+      .chat-messages { height: 380px; }
+      .message { max-width: 92%; }
+      .sim-selector { grid-template-columns: 1fr; }
+      .sim-metrics-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Ambient glowing background shapes -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+  </div>
+
+  <!-- ==========================================================================
+       NAVIGATION HEADER
+       ========================================================================== -->
+  <header class="navbar" role="banner">
+    <div class="container nav-container">
+      <a href="#" class="nav-brand" aria-label="TrafficMind AI Home">
+        <div class="brand-icon-wrapper" aria-hidden="true">
+          <!-- Traffic / Smart Signal SVG -->
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>TrafficMind AI</h1>
+          <p>Smarter Traffic. Safer Roads.</p>
+        </div>
+      </a>
+
+      <div class="nav-actions">
+        <!-- Live Demo indicator badge -->
+        <div class="status-badge" title="Running in simulated frontend demonstration mode">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span>Demo Simulation</span>
+        </div>
+
+        <!-- Theme Toggle -->
+        <button id="themeToggleBtn" class="btn btn-secondary btn-icon-only" aria-label="Toggle light or dark theme" title="Toggle Theme">
+          <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <!-- Moon icon by default -->
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+          </svg>
+        </button>
+
+        <!-- New Chat Button -->
+        <button id="navNewChatBtn" class="btn btn-primary" aria-label="Start new chat session">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>New Chat</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================================================================
+       MAIN CONTENT CONTAINER
+       ========================================================================== -->
+  <main class="container" role="main">
+
+    <!-- WELCOME / HERO SECTION -->
+    <section class="hero-section" aria-labelledby="heroHeading">
+      <div class="hero-badge">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
+        </svg>
+        <span>Student Hackathon Automobile & Smart City Prototype</span>
+      </div>
+
+      <h2 id="heroHeading" class="hero-title">
+        Welcome to <span class="gradient-text">TrafficMind AI</span>
+      </h2>
+      <p class="hero-subtitle">
+        Your intelligent assistant for smarter traffic management, road safety, and sustainable transportation.
+      </p>
+
+      <!-- 3 DEMONSTRATION STATISTIC CARDS -->
+      <div class="stats-grid" role="region" aria-label="Interactive demonstration statistics">
+        
+        <!-- Stat 1: Solutions Explored -->
+        <div class="stat-card">
+          <div class="stat-icon cyan" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm2.85 11.1l-.85.6V16h-4v-2.3l-.85-.6A4.997 4.997 0 0 1 7 9c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.63-.8 3.16-2.15 4.1z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statSolutions">6</div>
+            <div class="stat-label">Traffic Solutions Explored</div>
+            <span class="stat-subtext">Adaptive AI & Corridor Plans</span>
+          </div>
+        </div>
+
+        <!-- Stat 2: Road Safety Tips -->
+        <div class="stat-card">
+          <div class="stat-icon blue" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statSafety">14</div>
+            <div class="stat-label">Road Safety Tips</div>
+            <span class="stat-subtext">Defensive Driving Rules</span>
+          </div>
+        </div>
+
+        <!-- Stat 3: Eco-Driving Recommendations -->
+        <div class="stat-card">
+          <div class="stat-icon purple" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66l.95-2.3c.48.17.98.3 1.34.3C19 20 22 3 22 3c-1 2-8 2.25-13 3.25S2 11.5 2 13.5s1.75 3.75 1.75 3.75C7 8 17 8 17 8z"/>
+            </svg>
+          </div>
+          <div class="stat-content">
+            <div class="stat-value" id="statEco">8</div>
+            <div class="stat-label">Eco-Driving Recommendations</div>
+            <span class="stat-subtext">Idling & Fuel Conservation</span>
+          </div>
+        </div>
+
+      </div>
+      <p class="stats-disclaimer">*Note: Demonstration statistics updated live based on current prototype session interactions.</p>
+    </section>
+
+    <!-- ==========================================================================
+         DASHBOARD: CHATBOT INTERFACE + TRAFFIC SIMULATOR
+         ========================================================================== -->
+    <div class="dashboard-grid">
+
+      <!-- LEFT COLUMN: CHATBOT INTERFACE -->
+      <section class="glass-panel" aria-labelledby="chatHeading">
+        <!-- Chat Header -->
+        <div class="chat-header">
+          <div class="chat-bot-info">
+            <div class="avatar-wrapper" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M12 2a2 2 0 0 1 2 2c0 .74-.4 1.38-1 1.72V7h2a5 5 0 0 1 5 5v1h1a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v1a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5v-1H3a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h1v-1a5 5 0 0 1 5-5h2V5.72c-.6-.34-1-.98-1-1.72a2 2 0 0 1 2-2M7.5 13A1.5 1.5 0 0 0 6 14.5A1.5 1.5 0 0 0 7.5 16A1.5 1.5 0 0 0 9 14.5A1.5 1.5 0 0 0 7.5 13m9 0a1.5 1.5 0 0 0-1.5 1.5a1.5 1.5 0 0 0 1.5 1.5a1.5 1.5 0 0 0 1.5-1.5a1.5 1.5 0 0 0-1.5-1.5M12 17.5c-1.5 0-2.81.72-3.64 1.81c.36.43.83.69 1.37.69h4.54c.54 0 1.01-.26 1.37-.69c-.83-1.09-2.14-1.81-3.64-1.81Z"/>
+              </svg>
+              <span class="online-indicator" title="Assistant Ready"></span>
+            </div>
+            <div class="chat-bot-text">
+              <h3 id="chatHeading">TrafficMind AI <span class="badge-bot">ASSISTANT</span></h3>
+              <p>Rule-based Smart Traffic & Hackathon Advisor</p>
+            </div>
+          </div>
+
+          <div class="chat-controls">
+            <span class="msg-counter-badge" id="msgCounter" title="Total messages in current conversation">1 message</span>
+            <button id="clearChatBtn" class="btn btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.75rem;" title="Clear conversation history">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+              <span>Clear</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Scrollable Messages Area -->
+        <div class="chat-messages" id="chatMessages" role="log" aria-live="polite" aria-atomic="false">
+          <!-- Initial Welcome Message from TrafficMind AI -->
+          <div class="message bot-message">
+            <div class="msg-avatar" aria-hidden="true">AI</div>
+            <div class="msg-body">
+              <div class="msg-bubble">
+                <p><strong>Hello! I am TrafficMind AI</strong>, your interactive guide for smart urban transportation, road safety, and college hackathon projects.</p>
+                <p>I can help you understand:</p>
+                <ul>
+                  <li>Traffic congestion, bottlenecks, and signal timing</li>
+                  <li>Emergency vehicle priority corridors</li>
+                  <li>Eco-driving and fuel wastage reduction</li>
+                  <li>First-year hackathon tips, HTML/CSS/JS, and GitHub workflows</li>
+                </ul>
+                <p>Click any suggested question below or type your inquiry in the chat!</p>
+              </div>
+              <span class="msg-time" id="initialBotTime">Just now</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typingIndicator" aria-hidden="true">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-left: 0.25rem;">TrafficMind is answering...</span>
+        </div>
+
+        <!-- Suggested Question Chips -->
+        <div class="suggested-section">
+          <div class="suggested-label">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 21c0 .55.45 1 1 1h4c.55 0 1-.45 1-1v-1H9v1zm3-19C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7z"/>
+            </svg>
+            Suggested Inquiries
+          </div>
+          <div class="suggested-chips-wrapper">
+            <button class="chip-btn" data-query="Why do traffic jams happen?">Why do traffic jams happen?</button>
+            <button class="chip-btn" data-query="How can AI reduce traffic?">How can AI reduce traffic?</button>
+            <button class="chip-btn" data-query="How can we prioritize ambulances?">How can we prioritize ambulances?</button>
+            <button class="chip-btn" data-query="How can we reduce fuel wastage?">How can we reduce fuel wastage?</button>
+            <button class="chip-btn" data-query="What is smart traffic management?">What is smart traffic management?</button>
+            <button class="chip-btn" data-query="How do I build a traffic hackathon project?">How do I build a traffic hackathon project?</button>
+            <button class="chip-btn" data-query="How do I upload my project to GitHub?">How do I upload my project to GitHub?</button>
+          </div>
+        </div>
+
+        <!-- Chat Input Form -->
+        <div class="chat-input-area">
+          <form class="chat-form" id="chatForm" onsubmit="return false;">
+            <div class="input-wrapper">
+              <textarea 
+                id="userInput" 
+                class="chat-input" 
+                placeholder="Ask about traffic jams, signal AI, ambulances, eco-driving, or GitHub..." 
+                rows="1" 
+                aria-label="Message TrafficMind AI" 
+                required></textarea>
+              <div class="input-hint">
+                <span>Enter sends message &bull; Shift+Enter for new line</span>
+                <span id="charCount">0/400</span>
+              </div>
+            </div>
+            <button type="submit" id="sendBtn" class="send-btn" aria-label="Send message">
+              <svg viewBox="0 0 24 24">
+                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: INTERACTIVE TRAFFIC SIMULATION PANEL -->
+      <section class="glass-panel sim-panel" aria-labelledby="simHeading">
+        <div class="sim-header">
+          <h3 id="simHeading">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--cyan)">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            Traffic Flow Simulation
+          </h3>
+          <span class="sim-tag">Interactive Model</span>
+        </div>
+
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-top: -0.5rem;">
+          Select a road condition to test simulated traffic dynamics, fuel burn, and smart signal recommendations.
+        </p>
+
+        <!-- Condition selector buttons -->
+        <div class="sim-selector" role="tablist" aria-label="Simulated road conditions">
+          <button class="sim-tab-btn tab-low active" data-condition="low" role="tab" aria-selected="true">
+            <span>🟢 Low</span>
+            <small style="font-size: 0.68rem; opacity: 0.85;">Free Flow</small>
+          </button>
+          <button class="sim-tab-btn tab-mod" data-condition="mod" role="tab" aria-selected="false">
+            <span>🟡 Moderate</span>
+            <small style="font-size: 0.68rem; opacity: 0.85;">Peak Demand</small>
+          </button>
+          <button class="sim-tab-btn tab-heavy" data-condition="heavy" role="tab" aria-selected="false">
+            <span>🔴 Heavy</span>
+            <small style="font-size: 0.68rem; opacity: 0.85;">Gridlock Event</small>
+          </button>
+        </div>
+
+        <!-- Animated CSS Road Viewport -->
+        <div class="road-simulation-viewport" id="roadViewport" aria-label="Animated simulated road lane">
+          <div class="road-lane">
+            <div class="lane-marking"></div>
+            <div class="vehicle car-1" id="vCar1">Car 1</div>
+          </div>
+          <div class="road-lane">
+            <div class="lane-marking"></div>
+            <div class="vehicle emergency" id="vEmergency">🚑 EVP</div>
+            <div class="vehicle car-3" id="vCar3">Car 3</div>
+          </div>
+          <div class="road-lane">
+            <div class="lane-marking"></div>
+            <div class="vehicle car-2" id="vCar2">Car 2</div>
+          </div>
+        </div>
+
+        <!-- Simulated Road Status Banner -->
+        <div class="sim-status-banner status-low" id="simStatusBanner">
+          <div class="status-text">
+            <h4 id="simStatusTitle">Low Congestion (Simulated)</h4>
+            <p id="simStatusDesc">Traffic is flowing smoothly in this simulation. Maintain safe following distances.</p>
+          </div>
+        </div>
+
+        <!-- Metrics Display -->
+        <div class="sim-metrics-grid">
+          <div class="metric-box">
+            <div class="metric-label">Avg Flow Speed</div>
+            <div class="metric-value" id="simSpeed">56 km/h</div>
+            <div class="metric-desc" id="simSpeedDesc">Optimal efficiency</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Signal Wait Time</div>
+            <div class="metric-value" id="simWait">18 sec</div>
+            <div class="metric-desc" id="simWaitDesc">Normal green cycle</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Idle Fuel Wastage</div>
+            <div class="metric-value" id="simFuel">0.18 L/h</div>
+            <div class="metric-desc" id="simFuelDesc">Minimal emissions</div>
+          </div>
+          <div class="metric-box">
+            <div class="metric-label">Signal Strategy</div>
+            <div class="metric-value" id="simSignal" style="font-size: 0.95rem;">Green Wave</div>
+            <div class="metric-desc" id="simSignalDesc">Coordinated timings</div>
+          </div>
+        </div>
+
+        <!-- Suggested Action Box -->
+        <div class="sim-recommendation">
+          <div class="sim-rec-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+            </svg>
+            <span id="simRecTitle">Recommended Smart Action</span>
+          </div>
+          <p class="sim-rec-desc" id="simRecDesc">
+            Synchronize downstream green lights to keep vehicle platoons moving together and prevent unnecessary stopping.
+          </p>
+        </div>
+
+        <p class="sim-disclaimer">
+          *Educational Simulation: Values and vehicle graphics are illustrative computer simulations for hackathon presentation purposes.
+        </p>
+      </section>
+
+    </div>
+
+    <!-- ==========================================================================
+         QUICK-ACCESS TOPIC CARDS
+         ========================================================================== -->
+    <section aria-labelledby="topicsHeading">
+      <div class="section-title-wrap">
+        <span class="section-tag">Knowledge Base</span>
+        <h3 id="topicsHeading" class="section-title">Quick-Access Traffic & Tech Topics</h3>
+        <p class="section-desc">Click any card to immediately explore insights and advice directly in the AI chatbot.</p>
+      </div>
+
+      <div class="topics-grid">
+        
+        <!-- Card 1 -->
+        <article class="topic-card" data-topic="traffic-management" tabindex="0" role="button" aria-label="Explore Traffic Management in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M4 16c0 1.1.9 2 2 2h1v1c0 .55.45 1 1 1s1-.45 1-1v-1h6v1c0 .55.45 1 1 1s1-.45 1-1v-1h1c1.1 0 2-.9 2-2V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/></svg>
+              </div>
+              <div>
+                <h4>Traffic Management</h4>
+                <p>Understanding bottlenecks, choke points, signal coordination, and adaptive corridor management.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="topic-card" data-topic="road-safety" tabindex="0" role="button" aria-label="Explore Road Safety in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
+              </div>
+              <div>
+                <h4>Road Safety</h4>
+                <p>Essential defensive driving practices, safe following distances, pedestrian crosswalks, and blind spots.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="topic-card" data-topic="emergency-priority" tabindex="0" role="button" aria-label="Explore Emergency Vehicle Priority in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/></svg>
+              </div>
+              <div>
+                <h4>Emergency Priority</h4>
+                <p>How green corridors, RFID sirens, and preemption protocols expedite ambulances and fire rescue.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="topic-card" data-topic="fuel-efficiency" tabindex="0" role="button" aria-label="Explore Fuel Efficiency in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M19.77 7.23l.01-.01-3.72-3.72L15 4.56l2.11 2.11c-.94.36-1.61 1.26-1.61 2.33 0 1.38 1.12 2.5 2.5 2.5.36 0 .69-.08 1-.21v7.21c0 .55-.45 1-1 1s-1-.45-1-1V14c0-1.1-.9-2-2-2h-1V5c0-1.1-.9-2-2-2H6c-1.1 0-2 .9-2 2v16h10v-7.5h1.5v5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V9c0-.69-.28-1.32-.73-1.77zM12 10H6V5h6v5zm6 0c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1z"/></svg>
+              </div>
+              <div>
+                <h4>Fuel Efficiency</h4>
+                <p>Combating fuel waste during stop-and-go jams, minimizing engine idling, and adopting eco-driving habits.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="topic-card" data-topic="smart-cities" tabindex="0" role="button" aria-label="Explore Smart Cities in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M15 11V5l-3-3-3 3v2H3v14h18V11h-6zm-8 8H5v-2h2v2zm0-4H5v-2h2v2zm0-4H5V9h2v2zm6 8h-2v-2h2v2zm0-4h-2v-2h2v2zm0-4h-2V9h2v2zm0-4h-2V5h2v2zm6 12h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
+              </div>
+              <div>
+                <h4>Smart Cities</h4>
+                <p>Intelligent Transportation Systems (ITS), IoT sensor nodes, V2X connected grids, and multimodal mobility.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="topic-card" data-topic="hackathon-projects" tabindex="0" role="button" aria-label="Explore Hackathon Projects in Chat">
+          <div>
+            <div class="topic-top">
+              <div class="topic-icon">
+                <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
+              </div>
+              <div>
+                <h4>Hackathon Projects</h4>
+                <p>First-year engineering roadmap: ideation, HTML/CSS/JS frontend building, GitHub setup, and judge pitching.</p>
+              </div>
+            </div>
+          </div>
+          <div class="topic-cta">
+            <span>Ask TrafficMind AI</span>
+            <svg viewBox="0 0 24 24"><path d="M5 13h11.86l-5.43 5.43 1.42 1.42L21.14 12l-8.29-8.29-1.42 1.42L16.86 11H5v2z"/></svg>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         SMART TRAFFIC SOLUTIONS SECTION
+         ========================================================================== -->
+    <section class="solutions-section" aria-labelledby="solutionsHeading">
+      <div class="section-title-wrap">
+        <span class="section-tag">Urban Innovations</span>
+        <h3 id="solutionsHeading" class="section-title">Smart Traffic Solutions</h3>
+        <p class="section-desc">Practical frameworks proposed by modern smart city planners to relieve congestion safely.</p>
+      </div>
+
+      <div class="solutions-grid">
+
+        <!-- Solution 1 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+            </div>
+            <h4>1. Adaptive Traffic Signals</h4>
+          </div>
+          <p class="solution-body">
+            Replaces rigid pre-programmed timers with dynamic camera and inductive loop sensors that lengthen green times for busy lanes while truncating empty cycle phases.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Implement computer vision queue-length estimation to dynamically allocate green wave timing between major arterials.
+          </div>
+          <button class="btn-ask-sol" data-query="How can traffic signals be optimized?">Ask Bot About Signal AI &rarr;</button>
+        </article>
+
+        <!-- Solution 2 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-1 11h-4v4h-4v-4H6v-4h4V6h4v4h4v4z"/></svg>
+            </div>
+            <h4>2. Emergency Vehicle Priority</h4>
+          </div>
+          <p class="solution-body">
+            Employs encrypted vehicle-to-infrastructure (V2I) or acoustic siren transponders to temporarily preempt traffic lights, opening up guaranteed green corridors for emergency services.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Combine GPS route prediction with intersection preemption so intersections clear traffic 30 seconds before arrival.
+          </div>
+          <button class="btn-ask-sol" data-query="How can emergency vehicles receive priority?">Ask Bot About EVP &rarr;</button>
+        </article>
+
+        <!-- Solution 3 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+            </div>
+            <h4>3. Congestion Prediction</h4>
+          </div>
+          <p class="solution-body">
+            Synthesizes historical time-of-day data, weather forecasts, and real-time navigation trends using predictive machine learning to forecast bottlenecks 15 to 45 minutes in advance.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Recommend proactive detours to drivers before gridlock occurs rather than only reacting after a road is blocked.
+          </div>
+          <button class="btn-ask-sol" data-query="What causes traffic congestion?">Ask Bot About Congestion &rarr;</button>
+        </article>
+
+        <!-- Solution 4 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            </div>
+            <h4>4. Accident Prevention & Calming</h4>
+          </div>
+          <p class="solution-body">
+            Engineers safer intersections through elevated zebra crossings, pedestrian islands, automated speed regulation zones, and instant digital collision alert warnings.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Design smart intersections with pedestrian detection sensors that extend walk cycle duration for children and elderly.
+          </div>
+          <button class="btn-ask-sol" data-query="How can traffic accidents be prevented?">Ask Bot About Safety &rarr;</button>
+        </article>
+
+        <!-- Solution 5 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M12 2c5.52 0 10 4.48 10 10s-4.48 10-10 10S2 17.52 2 12 6.48 2 12 2zm1 14.5v-9L6.5 12l6.5 4.5z"/></svg>
+            </div>
+            <h4>5. Eco-Friendly Mobility</h4>
+          </div>
+          <p class="solution-body">
+            Curtails peak urban emissions by incentivizing electric bus transit, carpooling lanes, bicycle corridors, and eco-driving techniques that eliminate harsh acceleration.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Encourage stop-start driving awareness and smooth throttle application to cut urban stop-and-go fuel loss by up to 20%.
+          </div>
+          <button class="btn-ask-sol" data-query="How can drivers save fuel during congestion?">Ask Bot About Eco Driving &rarr;</button>
+        </article>
+
+        <!-- Solution 6 -->
+        <article class="solution-card">
+          <div class="solution-header">
+            <div class="sol-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24"><path d="M13 3H6v18h4v-6h3c3.31 0 6-2.69 6-6s-2.69-6-6-6zm.2 8H10V7h3.2c1.1 0 2 .9 2 2s-.9 2-2 2z"/></svg>
+            </div>
+            <h4>6. Smart Parking Systems</h4>
+          </div>
+          <p class="solution-body">
+            Studies indicate roughly 30% of downtown congestion is caused by drivers searching for open parking. IoT occupancy sensors guide drivers directly to vacant spaces.
+          </p>
+          <div class="solution-rec-box">
+            <strong>Key Hackathon Recommendation</strong>
+            Deploy roadside digital indicators displaying real-time space counts to eliminate unnecessary circling around parking lots.
+          </div>
+          <button class="btn-ask-sol" data-query="What is intelligent transportation?">Ask Bot About Smart City ITS &rarr;</button>
+        </article>
+
+      </div>
+    </section>
+
+    <!-- ==========================================================================
+         ABOUT & HACKATHON DEMO NOTES
+         ========================================================================== -->
+    <section class="about-section" aria-labelledby="aboutHeading">
+      <div class="about-card">
+        <div class="about-grid">
+          
+          <div class="about-col">
+            <h3 id="aboutHeading">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--cyan)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+              About TrafficMind AI
+            </h3>
+            <p>
+              <strong>TrafficMind AI</strong> was conceptualized as a premier first-year engineering hackathon prototype demonstrating how modern web technologies, responsive UI/UX, and smart traffic principles intersect.
+            </p>
+            <p>
+              It educates student developers, urban planners, and drivers about congestion dynamics, emergency corridor management, fuel conservation, and modern web application building.
+            </p>
+            <div class="pitch-badge-list">
+              <span class="pitch-tag">Single-File Architecture</span>
+              <span class="pitch-tag">Pure Vanilla JS</span>
+              <span class="pitch-tag">Offline Capable</span>
+              <span class="pitch-tag">SDG 11: Sustainable Cities</span>
+            </div>
+          </div>
+
+          <div class="about-col">
+            <h3>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--amber)">
+                <path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/>
+              </svg>
+              Prototype Scope & Safe Demo Notice
+            </h3>
+            <div class="limitations-box">
+              <strong>Simulated Frontend Demonstration</strong>
+              This software is an educational prototype built with client-side JavaScript. It features rule-based natural language responses and mathematical simulation routines.
+              <br><br>
+              <strong>System Limitations:</strong>
+              This application does not establish live connections to real-world municipal traffic controllers, dispatch real 911 emergency units, or scrape proprietary live GPS road telemetry without explicit backend configuration.
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==========================================================================
+       PROJECT FOOTER
+       ========================================================================== -->
+  <footer class="app-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-brand">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        <span>TrafficMind AI — Smarter Traffic. Safer Roads.</span>
+      </div>
+      <p class="footer-tagline">Built for automobile innovation, road safety, and sustainable smart cities.</p>
+      <p class="footer-subtagline">Designed for 1st Year Engineering Hackathons &bull; Zero external libraries &bull; 100% Client-Side</p>
+      <div>
+        <span class="footer-badge">Student Hackathon Prototype | Frontend Demo</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification element -->
+  <div class="toast" id="appToast" role="alert" aria-live="assertive">
+    <span id="toastMsg">Action completed</span>
+  </div>
+
+  <!-- ==========================================================================
+       VANILLA JAVASCRIPT: LOGIC, CHATBOT BRAIN, SIMULATION & STATE MANAGEMENT
+       ========================================================================== -->
+  <script>
+    (function() {
+      'use strict';
+
+      /* ------------------------------------------------------------------------
+         1. STATE & STORAGE MANAGEMENT
+         ------------------------------------------------------------------------ */
+      const APP_STORAGE_KEY = 'trafficmind_ai_chat_v1';
+      const THEME_STORAGE_KEY = 'trafficmind_theme_v1';
+      const STATS_STORAGE_KEY = 'trafficmind_stats_v1';
+
+      let stats = {
+        solutions: 6,
+        safety: 14,
+        eco: 8
+      };
+
+      // Load saved stats if any
+      try {
+        const savedStats = localStorage.getItem(STATS_STORAGE_KEY);
+        if (savedStats) {
+          stats = Object.assign(stats, JSON.parse(savedStats));
+        }
+      } catch (e) {
+        console.warn('Storage unavailable for stats:', e);
+      }
+
+      function updateStatsDisplay() {
+        const solEl = document.getElementById('statSolutions');
+        const safEl = document.getElementById('statSafety');
+        const ecoEl = document.getElementById('statEco');
+        if (solEl) solEl.textContent = stats.solutions;
+        if (safEl) safEl.textContent = stats.safety;
+        if (ecoEl) ecoEl.textContent = stats.eco;
+
+        try {
+          localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(stats));
+        } catch (e) {}
+      }
+
+      function incrementStat(type) {
+        if (stats[type] !== undefined) {
+          stats[type]++;
+          updateStatsDisplay();
+        }
+      }
+
+      /* ------------------------------------------------------------------------
+         2. THEME TOGGLE LOGIC (Dark Navy / Light Mode)
+         ------------------------------------------------------------------------ */
+      const themeToggleBtn = document.getElementById('themeToggleBtn');
+      const themeIcon = document.getElementById('themeIcon');
+
+      function applyTheme(theme) {
+        if (theme === 'light') {
+          document.documentElement.setAttribute('data-theme', 'light');
+          if (themeIcon) {
+            // Sun icon
+            themeIcon.innerHTML = '<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>';
+          }
+        } else {
+          document.documentElement.removeAttribute('data-theme');
+          if (themeIcon) {
+            // Moon icon
+            themeIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+          }
+        }
+        try {
+          localStorage.setItem(THEME_STORAGE_KEY, theme);
+        } catch (e) {}
+      }
+
+      // Initialize theme from storage or system preference
+      const savedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+      if (savedTheme) {
+        applyTheme(savedTheme);
+      }
+
+      if (themeToggleBtn) {
+        themeToggleBtn.addEventListener('click', function() {
+          const currentTheme = document.documentElement.getAttribute('data-theme');
+          const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+          applyTheme(newTheme);
+          showToast(`Switched to ${newTheme} theme`);
+        });
+      }
+
+      /* ------------------------------------------------------------------------
+         3. TOAST NOTIFICATION HELPER
+         ------------------------------------------------------------------------ */
+      let toastTimeout;
+      function showToast(msg) {
+        const toast = document.getElementById('appToast');
+        const toastMsg = document.getElementById('toastMsg');
+        if (!toast || !toastMsg) return;
+
+        toastMsg.textContent = msg;
+        toast.classList.add('show');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function() {
+          toast.classList.remove('show');
+        }, 3200);
+      }
+
+      /* ------------------------------------------------------------------------
+         4. COMPREHENSIVE PREDEFINED KNOWLEDGE BASE
+         ------------------------------------------------------------------------ */
+      const KNOWLEDGE_BASE = [
+        // GREETINGS & CASUAL
+        {
+          id: 'greeting',
+          triggers: ['hi', 'hello', 'hey', 'good morning', 'good afternoon', 'good evening', 'greetings', 'yo'],
+          exactMatchOnly: false,
+          answer: `<p><strong>Hello there!</strong> I am <strong>TrafficMind AI</strong>, your smart traffic and college hackathon assistant.</p><p>How can I help you today? You can ask me about <strong>traffic congestion causes</strong>, <strong>traffic signal algorithms</strong>, <strong>emergency vehicle corridors</strong>, <strong>eco-driving tips</strong>, or <strong>how to build your hackathon project</strong>!</p>`
+        },
+        {
+          id: 'what_is_trafficmind',
+          triggers: ['what is trafficmind', 'who are you', 'what are you', 'tell me about trafficmind', 'about this app'],
+          answer: `<p><strong>TrafficMind AI</strong> is an interactive educational assistant and smart-city prototype created for automobile engineering and smart transportation hackathons.</p><p>Its purpose is to help commuters, students, and city planners explore modern strategies for mitigating traffic congestion, ensuring road safety, reducing fuel waste, and implementing intelligent transport systems (ITS).</p>`
+        },
+
+        // TRAFFIC QUESTIONS
+        {
+          id: 'causes_of_congestion',
+          category: 'traffic',
+          triggers: ['why do traffic jams happen', 'what causes traffic', 'cause of traffic', 'why traffic occurs', 'reasons for congestion', 'bottleneck', 'traffic jam'],
+          answer: `<p><strong>Traffic congestion</strong> occurs when vehicular demand exceeds the physical throughput of the road network. Primary causes include:</p><ul><li><strong>Bottlenecks & Choke Points:</strong> Sudden reductions in lanes, narrow bridges, or uncoordinated merges.</li><li><strong>Phantom Jams (Shockwaves):</strong> Sudden braking by one driver causes a cascade effect, forcing following drivers to brake harder until traffic stops.</li><li><strong>Uncoordinated Traffic Signals:</strong> Fixed-time lights that stay red even when cross-streets have zero vehicles.</li><li><strong>Incidents & Breakdowns:</strong> Minor collisions, disabled vehicles, or construction blocking active lanes.</li><li><strong>Illegal Parking & Lane Obstructions:</strong> Double parking on commercial streets reducing effective lane capacity.</li></ul><p><em>Smart Solution:</em> Adaptive signal networks and rapid incident response teams can reduce congestion delays by up to 25%.</p>`
+        },
+        {
+          id: 'how_ai_helps',
+          category: 'traffic',
+          triggers: ['how can ai help', 'how can ai reduce traffic', 'ai in traffic', 'artificial intelligence traffic', 'machine learning traffic', 'how ai solves congestion'],
+          answer: `<p><strong>Artificial Intelligence</strong> assists traffic management through four core pillars:</p><ol><li><strong>Computer Vision Vehicle Counting:</strong> CCTV cameras analyze traffic density and queue lengths in real-time, eliminating the need for manual traffic police counts.</li><li><strong>Reinforcement Learning Signal Timing:</strong> AI models continuously learn traffic patterns and dynamically adjust signal cycle lengths to clear long queues.</li><li><strong>Predictive Flow Modeling:</strong> AI forecasts congestion 30 minutes before it happens by factoring in weather, school timings, and event calendars.</li><li><strong>Dynamic Route Guidance:</strong> Navigation apps suggest distributed alternate routes to prevent thousands of drivers from flooding the same single corridor.</li></ol><p><em>Hackathon Note:</em> In this prototype, these concepts are illustrated through interactive simulations and structured responses.</p>`
+        },
+        {
+          id: 'traffic_signals',
+          category: 'traffic',
+          triggers: ['how can traffic signals be optimized', 'optimize traffic signals', 'smart traffic lights', 'adaptive traffic signal', 'traffic light timing', 'green wave'],
+          answer: `<p><strong>Traffic Signal Optimization</strong> moves away from traditional static timers toward responsive traffic control:</p><ul><li><strong>Adaptive Cycle Timing:</strong> Signals measure real-time queue lengths with sensors or cameras and grant more green time to heavier approaches.</li><li><strong>Green Wave Coordination:</strong> Synchronizing consecutive traffic signals along an arterial street so vehicles travelling at the legal speed limit hit successive green lights without stopping.</li><li><strong>Pedestrian Actuation:</strong> Walk signals only activate when pedestrian call buttons or heat sensors detect someone waiting, preventing unnecessary vehicular stops.</li><li><strong>Off-Peak Flashing Mode:</strong> Switching low-density intersections to amber caution flashers late at night to eliminate wasteful red light idling.</li></ul>`
+        },
+        {
+          id: 'fixed_vs_adaptive',
+          category: 'traffic',
+          triggers: ['what is the difference between fixed-time and adaptive traffic signals', 'difference between fixed-time and adaptive traffic signals', 'fixed-time and adaptive traffic signals', 'fixed time vs adaptive', 'difference between fixed and adaptive', 'fixed vs adaptive', 'fixed signal', 'adaptive signal', 'difference between signals'],
+          answer: `<p><strong>Fixed-Time vs. Adaptive Traffic Signals Comparison:</strong></p><ul><li><strong>Fixed-Time Signals:</strong> Run on rigid, pre-programmed timers (e.g., 60s Green / 60s Red) regardless of actual vehicle queues. They often waste green time on empty lanes while opposing lanes wait in long backups.</li><li><strong>Adaptive Traffic Signals:</strong> Use live loop detectors, radar, or CCTV feeds to adjust green phase duration second-by-second based on measured demand. If no cars are waiting on side streets, the main artery stays green.</li></ul><p><em>Impact:</em> Studies show adaptive signals can reduce vehicle stops by up to 40% and cut commute delays by 15-25%.</p>`
+        },
+        {
+          id: 'emergency_priority',
+          category: 'emergency',
+          triggers: ['how can we prioritize ambulances', 'ambulance', 'ambulances', 'emergency', 'siren', 'emergency vehicles', 'ambulance priority', 'fire engine traffic', 'emergency vehicle priority', 'green corridor', 'evp'],
+          answer: `<p><strong>Emergency Vehicle Priority (EVP)</strong> ensures life-saving vehicles reach hospitals and crisis zones without getting trapped in gridlock:</p><ol><li><strong>Acoustic & Opticom Sensors:</strong> Detect authorized high-frequency siren sound patterns or strobe lights to trigger an immediate phase change.</li><li><strong>GPS & Connected Vehicle (V2I):</strong> The ambulance navigation system communicates with central municipal servers, pre-clearing traffic lights 500 meters ahead.</li><li><strong>Dynamic Green Corridors:</strong> Downstream signals turn green early to flush existing queued vehicles out of the lane before the ambulance arrives.</li><li><strong>Digital VMS Warning Signs:</strong> Variable Message Signs alert regular motorists to merge right and yield well in advance.</li></ol><p><em>Road Safety Rule:</em> As a driver, always signal and calmly move toward the shoulder when emergency sirens sound.</p>`
+        },
+        {
+          id: 'accident_prevention',
+          category: 'safety',
+          triggers: ['prevent accidents', 'how can traffic accidents be prevented', 'road safety rules', 'avoid accidents', 'defensive driving', 'safe driving', 'accident prevention'],
+          answer: `<p><strong>Road Safety & Accident Prevention Guidelines:</strong></p><ul><li><strong>3-Second Following Rule:</strong> Maintain at least a 3-second distance behind the lead vehicle (increase to 5-6 seconds in rain or fog) to allow safe reaction time.</li><li><strong>Blind Spot Vigilance:</strong> Check side mirrors and do a shoulder check before changing lanes; never linger in truck blind spots ("No-Zones").</li><li><strong>Intersection Caution:</strong> Never rush amber lights. Over 40% of major urban collisions occur at intersections due to red-light jumping.</li><li><strong>Eliminate Distractions:</strong> Avoid texting, browsing, or phone calls while driving. Hands-free setups can still cause cognitive distraction.</li><li><strong>Pedestrian Right-of-Way:</strong> Slow down near zebra crossings, transit stops, and school zones.</li></ul>`
+        },
+        {
+          id: 'fuel_wastage',
+          category: 'eco',
+          triggers: ['reduce fuel wastage', 'how can drivers save fuel', 'save fuel in traffic', 'save fuel', 'fuel', 'fuel wastage', 'fuel consumption', 'idling', 'eco driving', 'hypermiling'],
+          answer: `<p><strong>Eco-Driving Strategies to Save Fuel in Congestion:</strong></p><ul><li><strong>Shut Off Engine During Long Stops:</strong> Idling for more than 10-15 seconds consumes more fuel than restarting the engine. Utilize auto-stop-start systems if equipped.</li><li><strong>Avoid Jackrabbit Starts:</strong> Gentle, progressive acceleration from traffic lights saves up to 15-20% fuel compared to slamming the throttle.</li><li><strong>Anticipate Traffic Flow:</strong> Coast early when approaching red lights or stopped queues instead of speeding up only to slam the brakes.</li><li><strong>Check Tire Pressure:</strong> Under-inflated tires increase rolling resistance, wasting up to 3% more fuel per tank.</li><li><strong>Minimize AC Load in Gridlock:</strong> If ambient temperature allows, lower AC compressor strain during prolonged standstills.</li></ul>`
+        },
+        {
+          id: 'smart_city_its',
+          category: 'traffic',
+          triggers: ['what is intelligent transportation', 'what is smart traffic management', 'smart city transport', 'its', 'intelligent transport systems', 'smart city'],
+          answer: `<p><strong>Intelligent Transportation Systems (ITS)</strong> apply IoT sensing, wireless communication, and data science to city mobility networks:</p><ul><li><strong>Roadside Units (RSUs) & V2X:</strong> Road sensors communicate directly with onboard vehicle units to warn of slippery roads or accidents ahead.</li><li><strong>Centralized TMC (Traffic Management Center):</strong> Municipal dashboards that monitor citywide cameras, re-timing signals during sporting events or rush hour.</li><li><strong>Dynamic Variable Tolls:</strong> Congestion pricing that automatically nudges discretionary trips to off-peak hours or public transit.</li><li><strong>Smart Multimodal Integration:</strong> Unified transit cards linking subway, light rail, shared bicycles, and electric feeder buses into one synchronized network.</li></ul>`
+        },
+        {
+          id: 'traffic_pollution',
+          category: 'eco',
+          triggers: ['traffic pollution', 'reduce pollution', 'emissions', 'air quality', 'co2 from traffic', 'vehicle pollution'],
+          answer: `<p><strong>Reducing Traffic Pollution in Urban Centers:</strong></p><ul><li><strong>Low-Emission Zones (LEZ):</strong> Designating city center zones that restrict heavily polluting older diesel commercial vehicles.</li><li><strong>Promoting Electric Mobility:</strong> Installing fast EV charging plazas and prioritizing electric public transport fleets.</li><li><strong>Active Transportation Infrastructure:</strong> Building protected, shaded bicycle tracks and wide pedestrian footpaths for last-mile trips under 2 km.</li><li><strong>Carpooling Incentives:</strong> High-Occupancy Vehicle (HOV) priority lanes to discourage single-occupant commuter vehicles.</li></ul>`
+        },
+        {
+          id: 'pedestrian_safety',
+          category: 'safety',
+          triggers: ['pedestrian safety', 'improve pedestrian safety', 'pedestrians', 'walking safety', 'crosswalk'],
+          answer: `<p><strong>How Cities Can Drastically Improve Pedestrian Safety:</strong></p><ul><li><strong>Raised Crosswalks & Speed Tables:</strong> Physical road elevation at zebra crossings acts as natural speed control for approaching vehicles.</li><li><strong>Refuge Islands:</strong> Median safety zones in wide 4-lane roads giving elderly and children a safe stopping midpoint.</li><li><strong>Pedestrian Countdown Timers:</strong> Clearly display remaining seconds to prevent unsafe last-second sprints across intersections.</li><li><strong>Adequate Street Lighting:</strong> High-illumination LED lamps focused specifically on crosswalk approaches to boost night-time visibility.</li></ul>`
+        },
+        {
+          id: 'college_traffic',
+          category: 'traffic',
+          triggers: ['reduce traffic near colleges', 'college traffic', 'campus traffic', 'school zone traffic', 'university traffic'],
+          answer: `<p><strong>Mitigating Traffic Near Colleges and Campuses:</strong></p><ol><li><strong>Designated Drop-Off Bays:</strong> Move student drop-off zones 100 meters away from the primary campus entrance gate to prevent curbside bottlenecks.</li><li><strong>Staggered Class Timings:</strong> Staggering department arrival times (e.g., First Years at 8:30 AM, Seniors at 9:15 AM) flattens peak gate congestion.</li><li><strong>Subsidized Campus Transit & Carpools:</strong> Encourage college bus transit and designated student carpool parking slots.</li><li><strong>Bicycle Stations:</strong> Free or low-cost bicycle rental docks connecting transit hubs to departmental buildings.</li></ol>`
+        },
+
+        // EDUCATIONAL & HACKATHON QUESTIONS
+        {
+          id: 'what_is_hackathon',
+          category: 'hackathon',
+          triggers: ['what is a hackathon', 'hackathon meaning', 'what happens in hackathon', 'hackathons explained', 'hackathon', 'hackathons'],
+          answer: `<p><strong>A Hackathon</strong> is an intensive, time-bounded sprint (typically 24 to 48 hours) where students, developers, designers, and problem-solvers collaborate to build a functional prototype from scratch.</p><p>Key hackathon characteristics:</p><ul><li><strong>Problem-Centric:</strong> Teams address challenges in smart cities, healthcare, education, or climate change.</li><li><strong>Working Proof-of-Concept:</strong> Judges look for functional prototypes rather than theoretical slide decks.</li><li><strong>Teamwork & Learning:</strong> You learn rapid prototyping, Git version control, UI design, and public presentation skills in one weekend.</li></ul>`
+        },
+        {
+          id: 'hackathon_ideas',
+          category: 'hackathon',
+          triggers: ['how do i find a hackathon project idea', 'hackathon idea', 'project ideas', 'idea for hackathon', 'how to choose a topic'],
+          answer: `<p><strong>How to Select Winning Hackathon Project Ideas:</strong></p><ol><li><strong>Identify Daily Frustrations:</strong> Think about problems you personally encounter (e.g., getting stuck outside college gates, ambulance delays, missing bus schedules).</li><li><strong>Keep Scope Realistic (MVP):</strong> Plan an MVP (Minimum Viable Product) you can realistically build within the hackathon time limit.</li><li><strong>Ensure Visual & Interactive Appeal:</strong> Judges love clean UI, working interactive controls, and visual simulations (like the road simulator on this page!).</li><li><strong>Align with Sustainable Goals:</strong> Tying your project to UN Sustainable Development Goals (like <em>SDG 11: Sustainable Cities & Communities</em>) adds substantial credibility.</li></ol>`
+        },
+        {
+          id: 'build_traffic_hackathon',
+          category: 'hackathon',
+          triggers: ['how do i build a traffic hackathon project', 'build a traffic project', 'traffic hackathon roadmap', 'how to make this project'],
+          answer: `<p><strong>Roadmap to Build a Traffic Hackathon Project:</strong></p><ol><li><strong>Define the Scope:</strong> Pick one focused problem (e.g., Smart Signal Assistance, Green Corridors, or Driver Safety Education).</li><li><strong>Design the UI Dashboard:</strong> Build a clean, responsive layout with dark navy smart-city aesthetics, cards, and status tags using HTML & CSS.</li><li><strong>Create an Interactive Simulation:</strong> Add an interactive road animation using CSS keyframes and vanilla JavaScript to demonstrate traffic states visually.</li><li><strong>Build the Rule-Based Chatbot:</strong> Create a keyword-matching knowledge base in JavaScript so your project can answer visitor questions offline without needing paid APIs.</li><li><strong>Prepare Your Pitch:</strong> Prepare a 3-minute demo showing the problem, live tool walk-through, and future real-world integration roadmap!</li></ol>`
+        },
+        {
+          id: 'what_is_github',
+          category: 'hackathon',
+          triggers: ['what is github', 'what is git', 'explain github', 'why use github', 'github', 'git', 'git and github', 'version control'],
+          answer: `<p><strong>Git & GitHub Explained Simply:</strong></p><ul><li><strong>Git:</strong> A version control system that tracks changes made to your project code over time, allowing you to roll back errors.</li><li><strong>GitHub:</strong> A cloud hosting platform for Git repositories. It lets developers collaborate, showcase code portfolios to recruiters, and host websites for free using <strong>GitHub Pages</strong>.</li></ul><p>For hackathon students, an organized GitHub repository with a clear <code>README.md</code> is a hallmark of engineering professionalism.</p>`
+        },
+        {
+          id: 'upload_to_github',
+          category: 'hackathon',
+          triggers: ['how do i upload my project to github', 'upload code to github', 'how to upload html to github', 'put on github', 'github upload guide'],
+          answer: `<p><strong>How to Upload Your HTML Project to GitHub (Easiest Beginner Steps):</strong></p><ol><li><strong>Create a GitHub Account:</strong> Sign up at <a href="https://github.com" target="_blank" rel="noopener">github.com</a>.</li><li><strong>Create a New Repository:</strong> Click the <strong>"+"</strong> icon &rarr; <strong>New repository</strong>. Name it <code>trafficmind-ai</code>, check "Public", and click <strong>Create repository</strong>.</li><li><strong>Upload via Browser (Drag & Drop):</strong> Click <strong>"uploading an existing file"</strong>, drag your <code>index.html</code> file, type a commit message like <em>"Initial release of TrafficMind AI"</em>, and click <strong>Commit changes</strong>.</li><li><strong>Enable Free Live Hosting:</strong> In your repo, go to <strong>Settings</strong> &rarr; <strong>Pages</strong>. Under <em>Branch</em>, select <code>main</code> and folder <code>/ (root)</code>, then click <strong>Save</strong>. In 2 minutes your website is live worldwide!</li></ol>`
+        },
+        {
+          id: 'html_css_js',
+          category: 'hackathon',
+          triggers: ['what is html', 'what is css', 'what is javascript', 'html css js', 'how do html css and javascript work together', 'web development basics'],
+          answer: `<p><strong>How HTML, CSS, and JavaScript Work Together:</strong></p><ul><li><strong>HTML (Structure / Skeleton):</strong> Defines the content and layout elements (headings, buttons, text inputs, images, and semantic sections).</li><li><strong>CSS (Presentation / Clothing):</strong> Controls colors, typography, glassmorphism gradients, spacing, flexbox/grid alignments, and smooth hover animations.</li><li><strong>JavaScript (Behavior / Brain):</strong> Powers interactivity—processes user chat inputs, manages the traffic simulation speeds, toggles light/dark themes, and updates counters.</li></ul><p>In this project, all three are elegantly unified within a single <code>index.html</code> file!</p>`
+        },
+        {
+          id: 'first_year_advice',
+          category: 'hackathon',
+          triggers: ['how can a first year student build a college project', 'first year student', 'btech first year', 'beginner project advice', 'engineering first year'],
+          answer: `<p><strong>Golden Rules for First-Year B.Tech Hackathon Teams:</strong></p><ol><li><strong>Do Not Overcomplicate:</strong> You do not need complex cloud backends or paid AI tokens. A polished, error-free frontend with simulated data impresses judges far more than a broken complex API.</li><li><strong>Master the Basics:</strong> Solid vanilla HTML, CSS, and modern JavaScript are timeless foundation skills.</li><li><strong>Clean Code & Comments:</strong> Organize code into clear sections with descriptive variable names and helpful comments.</li><li><strong>Rehearse the Pitch:</strong> Practice your 3-minute presentation. Even brilliant code loses if the team cannot explain the problem clearly.</li></ol>`
+        },
+        {
+          id: 'presenting_to_judges',
+          category: 'hackathon',
+          triggers: ['how do i present my project to hackathon judges', 'pitch to judges', 'present project', 'hackathon presentation', 'demo script', 'how to pitch', 'pitch project', 'pitching to judges'],
+          answer: `<p><strong>Winning 3-Minute Hackathon Pitch Formula:</strong></p><ol><li><strong>The Hook (30s):</strong> State the urgent real-world problem (e.g., <em>"Traffic congestion costs billions in fuel waste and delays emergency ambulances daily."</em>).</li><li><strong>The Solution (30s):</strong> Introduce TrafficMind AI as a lightweight, accessible assistant and simulation dashboard for smart cities.</li><li><strong>The Live Demo (60s):</strong> Show the road simulation responding to condition changes, then demonstrate a real-time question in the AI chatbot.</li><li><strong>Tech Stack & Feasibility (30s):</strong> Explain that it runs purely client-side without costly dependencies, ready for offline or embedded kiosk deployment.</li><li><strong>Future Roadmap & Q&A (30s):</strong> Mention next steps (integrating municipal camera APIs, GPS feeds) and invite judge questions.</li></ol>`
+        }
+      ];
+
+      /* ------------------------------------------------------------------------
+         5. CHATBOT QUERY MATCHER
+         ------------------------------------------------------------------------ */
+      function matchQuery(rawInput) {
+        if (!rawInput || typeof rawInput !== 'string') return null;
+
+        // Clean and normalize input string
+        const clean = rawInput.toLowerCase().trim().replace(/[?!.,;:'"()\-]/g, ' ').replace(/\s+/g, ' ').trim();
+        const words = clean.split(/\s+/).filter(Boolean);
+
+        if (words.length === 0) return null;
+
+        let bestMatch = null;
+        let highestScore = 0;
+
+        for (const item of KNOWLEDGE_BASE) {
+          let itemScore = 0;
+
+          for (const trigger of item.triggers) {
+            const triggerNorm = trigger.toLowerCase().trim().replace(/[?!.,;:'"()\-]/g, ' ').replace(/\s+/g, ' ').trim();
+            let triggerScore = 0;
+
+            // 1. Exact match - highest priority
+            if (clean === triggerNorm) {
+              triggerScore = 300;
+            }
+            // 2. Full phrase match as whole words
+            else if (clean.includes(triggerNorm)) {
+              triggerScore = 100 + triggerNorm.length * 2;
+            }
+            // 3. Word token matching
+            else {
+              const triggerWords = triggerNorm.split(/\s+/).filter(Boolean);
+              let matchedCount = 0;
+              for (const tw of triggerWords) {
+                if (words.includes(tw)) {
+                  matchedCount++;
+                }
+              }
+              if (matchedCount === triggerWords.length && triggerWords.length > 0) {
+                triggerScore = 60 + matchedCount * 10;
+              } else if (matchedCount > 0) {
+                triggerScore = matchedCount * 10;
+              }
+            }
+
+            if (triggerScore > itemScore) {
+              itemScore = triggerScore;
+            }
+          }
+
+          if (itemScore > highestScore) {
+            highestScore = itemScore;
+            bestMatch = item;
+          }
+        }
+
+        // Return best match if score passes threshold
+        if (highestScore >= 18 && bestMatch) {
+          return bestMatch;
+        }
+
+        // Default friendly fallback response
+        return {
+          id: 'fallback',
+          category: 'fallback',
+          answer: `<p>I didn't quite catch the specific details of that question, but I am ready to help you!</p>
+          <p>You can try asking about:</p>
+          <ul>
+            <li><strong>Traffic Congestion:</strong> <em>"Why do traffic jams happen?"</em> or <em>"How can AI help?"</em></li>
+            <li><strong>Safety & Signals:</strong> <em>"How do we prioritize ambulances?"</em> or <em>"Fixed vs adaptive signals"</em></li>
+            <li><strong>Fuel & Ecology:</strong> <em>"How can drivers save fuel?"</em></li>
+            <li><strong>Hackathons & Code:</strong> <em>"How to upload to GitHub?"</em> or <em>"How to pitch to judges?"</em></li>
+          </ul>
+          <p>Or click one of the suggested buttons right above!</p>`
+        };
+      }
+
+      /* ------------------------------------------------------------------------
+         6. CHATBOT DOM INTERACTION & MESSAGE HANDLING
+         ------------------------------------------------------------------------ */
+      const chatMessages = document.getElementById('chatMessages');
+      const chatForm = document.getElementById('chatForm');
+      const userInput = document.getElementById('userInput');
+      const sendBtn = document.getElementById('sendBtn');
+      const typingIndicator = document.getElementById('typingIndicator');
+      const msgCounter = document.getElementById('msgCounter');
+      const clearChatBtn = document.getElementById('clearChatBtn');
+      const navNewChatBtn = document.getElementById('navNewChatBtn');
+      const charCount = document.getElementById('charCount');
+
+      let messageHistory = [];
+
+      function updateMessageCounter() {
+        const total = chatMessages.querySelectorAll('.message').length;
+        if (msgCounter) {
+          msgCounter.textContent = `${total} message${total === 1 ? '' : 's'}`;
+        }
+      }
+
+      function scrollToBottom() {
+        if (chatMessages) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+
+      function formatTimestamp() {
+        const now = new Date();
+        return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      }
+
+      // Safe creation of message bubble preventing XSS for user text
+      function appendUserMessage(text) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message user-message';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'msg-avatar';
+        avatarDiv.setAttribute('aria-hidden', 'true');
+        avatarDiv.textContent = 'YOU';
+
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'msg-body';
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'msg-bubble';
+        // SECURE: Use textContent for user input to prevent XSS
+        bubbleDiv.textContent = text;
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'msg-time';
+        timeSpan.textContent = formatTimestamp();
+
+        bodyDiv.appendChild(bubbleDiv);
+        bodyDiv.appendChild(timeSpan);
+
+        msgDiv.appendChild(avatarDiv);
+        msgDiv.appendChild(bodyDiv);
+
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+        updateMessageCounter();
+
+        // Save to in-memory history
+        messageHistory.push({ sender: 'user', text: text, time: timeSpan.textContent });
+        saveChatHistory();
+      }
+
+      function appendBotMessage(htmlContent) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = 'message bot-message';
+
+        const avatarDiv = document.createElement('div');
+        avatarDiv.className = 'msg-avatar';
+        avatarDiv.setAttribute('aria-hidden', 'true');
+        avatarDiv.textContent = 'AI';
+
+        const bodyDiv = document.createElement('div');
+        bodyDiv.className = 'msg-body';
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.className = 'msg-bubble';
+        // Bot HTML content is strictly from trusted internal predefined KNOWLEDGE_BASE
+        bubbleDiv.innerHTML = htmlContent;
+
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'msg-time';
+        timeSpan.textContent = formatTimestamp();
+
+        bodyDiv.appendChild(bubbleDiv);
+        bodyDiv.appendChild(timeSpan);
+
+        msgDiv.appendChild(avatarDiv);
+        msgDiv.appendChild(bodyDiv);
+
+        chatMessages.appendChild(msgDiv);
+        scrollToBottom();
+        updateMessageCounter();
+
+        messageHistory.push({ sender: 'bot', html: htmlContent, time: timeSpan.textContent });
+        saveChatHistory();
+      }
+
+      function handleSendMessage(queryText) {
+        const text = (queryText || userInput.value || '').trim();
+        if (!text) {
+          userInput.focus();
+          return;
+        }
+
+        // Limit character length
+        const sanitized = text.substring(0, 400);
+
+        // Display user message
+        appendUserMessage(sanitized);
+
+        // Clear input field & reset height
+        userInput.value = '';
+        userInput.style.height = 'auto';
+        if (charCount) charCount.textContent = '0/400';
+
+        // Show typing indicator
+        if (typingIndicator) typingIndicator.classList.add('active');
+        if (sendBtn) sendBtn.disabled = true;
+        scrollToBottom();
+
+        // Match query and pick response
+        const matchResult = matchQuery(sanitized);
+
+        // Update interaction statistics based on category
+        if (matchResult && matchResult.category) {
+          if (matchResult.category === 'traffic') incrementStat('solutions');
+          else if (matchResult.category === 'safety' || matchResult.category === 'emergency') incrementStat('safety');
+          else if (matchResult.category === 'eco') incrementStat('eco');
+        }
+
+        // Natural typing delay for realistic interaction (350ms to 550ms)
+        const delay = Math.floor(Math.random() * 200) + 350;
+
+        setTimeout(function() {
+          if (typingIndicator) typingIndicator.classList.remove('active');
+          if (sendBtn) sendBtn.disabled = false;
+          appendBotMessage(matchResult.answer);
+          userInput.focus();
+        }, delay);
+      }
+
+      // Input character counter and auto-expand
+      if (userInput) {
+        userInput.addEventListener('input', function() {
+          this.style.height = 'auto';
+          this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+          if (charCount) {
+            charCount.textContent = `${this.value.length}/400`;
+          }
+        });
+
+        // Enter to send, Shift+Enter for newline
+        userInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSendMessage();
+          }
+        });
+      }
+
+      if (chatForm) {
+        chatForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          handleSendMessage();
+        });
+      }
+
+      /* ------------------------------------------------------------------------
+         7. SUGGESTED QUESTIONS & TOPIC CARDS WIRING
+         ------------------------------------------------------------------------ */
+      // Suggested question pill buttons
+      document.querySelectorAll('.chip-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const query = this.getAttribute('data-query');
+          if (query) {
+            handleSendMessage(query);
+          }
+        });
+      });
+
+      // Quick-access topic cards
+      const topicCardQueries = {
+        'traffic-management': 'What is smart traffic management and what causes traffic congestion?',
+        'road-safety': 'How can traffic accidents be prevented and what are essential road safety rules?',
+        'emergency-priority': 'How can we prioritize ambulances and create emergency green corridors?',
+        'fuel-efficiency': 'How can drivers save fuel and reduce wastage during traffic congestion?',
+        'smart-cities': 'What is intelligent transportation and how do smart cities manage traffic?',
+        'hackathon-projects': 'How do I build a traffic hackathon project and upload it to GitHub?'
+      };
+
+      document.querySelectorAll('.topic-card').forEach(function(card) {
+        const topic = card.getAttribute('data-topic');
+        const clickHandler = function() {
+          const query = topicCardQueries[topic];
+          if (query) {
+            // Scroll to chatbot
+            const chatSection = document.getElementById('chatHeading');
+            if (chatSection) {
+              chatSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            handleSendMessage(query);
+          }
+        };
+
+        card.addEventListener('click', clickHandler);
+        card.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            clickHandler();
+          }
+        });
+      });
+
+      // Solution cards 'Ask Bot About This' buttons
+      document.querySelectorAll('.btn-ask-sol').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          const query = this.getAttribute('data-query');
+          if (query) {
+            const chatSection = document.getElementById('chatHeading');
+            if (chatSection) {
+              chatSection.scrollIntoView({ behavior: 'smooth' });
+            }
+            handleSendMessage(query);
+          }
+        });
+      });
+
+      /* ------------------------------------------------------------------------
+         8. RESET / NEW CHAT / CLEAR CHAT
+         ------------------------------------------------------------------------ */
+      function resetChat() {
+        if (!chatMessages) return;
+
+        chatMessages.innerHTML = `
+          <div class="message bot-message">
+            <div class="msg-avatar" aria-hidden="true">AI</div>
+            <div class="msg-body">
+              <div class="msg-bubble">
+                <p><strong>Hello! I am TrafficMind AI</strong>, your interactive guide for smart urban transportation, road safety, and college hackathon projects.</p>
+                <p>I can help you understand:</p>
+                <ul>
+                  <li>Traffic congestion, bottlenecks, and signal timing</li>
+                  <li>Emergency vehicle priority corridors</li>
+                  <li>Eco-driving and fuel wastage reduction</li>
+                  <li>First-year hackathon tips, HTML/CSS/JS, and GitHub workflows</li>
+                </ul>
+                <p>Click any suggested question below or type your inquiry in the chat!</p>
+              </div>
+              <span class="msg-time">${formatTimestamp()}</span>
+            </div>
+          </div>
+        `;
+
+        messageHistory = [];
+        try {
+          localStorage.removeItem(APP_STORAGE_KEY);
+        } catch (e) {}
+
+        updateMessageCounter();
+        showToast('Chat history cleared & new session ready');
+        if (userInput) userInput.focus();
+      }
+
+      if (clearChatBtn) {
+        clearChatBtn.addEventListener('click', function() {
+          if (confirm('Clear the current conversation and start fresh?')) {
+            resetChat();
+          }
+        });
+      }
+
+      if (navNewChatBtn) {
+        navNewChatBtn.addEventListener('click', function() {
+          resetChat();
+          const chatHeading = document.getElementById('chatHeading');
+          if (chatHeading) chatHeading.scrollIntoView({ behavior: 'smooth' });
+        });
+      }
+
+      function saveChatHistory() {
+        try {
+          localStorage.setItem(APP_STORAGE_KEY, JSON.stringify(messageHistory));
+        } catch (e) {}
+      }
+
+      function loadSavedChatHistory() {
+        try {
+          const saved = localStorage.getItem(APP_STORAGE_KEY);
+          if (saved) {
+            const history = JSON.parse(saved);
+            if (Array.isArray(history) && history.length > 0) {
+              history.forEach(item => {
+                if (item.sender === 'user') {
+                  appendUserMessage(item.text);
+                } else if (item.sender === 'bot') {
+                  appendBotMessage(item.html);
+                }
+              });
+            }
+          }
+        } catch (e) {}
+      }
+
+      /* ------------------------------------------------------------------------
+         9. TRAFFIC SIMULATION PANEL CONTROLLER
+         ------------------------------------------------------------------------ */
+      const SIM_DATA = {
+        low: {
+          title: 'Low Congestion (Simulated)',
+          desc: 'Traffic is flowing smoothly in this simulation. Maintain safe following distances.',
+          speed: '56 km/h',
+          speedDesc: 'Optimal road velocity',
+          wait: '18 sec',
+          waitDesc: 'Standard green phase',
+          fuel: '0.18 L/h',
+          fuelDesc: 'Minimal emissions',
+          signal: 'Green Wave',
+          signalDesc: 'Coordinated timings',
+          actionTitle: 'Optimal Flow State',
+          actionDesc: 'Synchronize downstream green lights to keep vehicle platoons moving together and prevent unnecessary stopping.',
+          cssSpeed: '3.5s',
+          statusClass: 'status-low'
+        },
+        mod: {
+          title: 'Moderate Congestion (Simulated)',
+          desc: 'Consider alternative routes if available and avoid unnecessary lane changes.',
+          speed: '28 km/h',
+          speedDesc: 'Stop-and-go pattern',
+          wait: '65 sec',
+          waitDesc: 'Queue accumulation',
+          fuel: '0.85 L/h',
+          fuelDesc: 'Moderate idling waste',
+          signal: 'Adaptive Extension',
+          signalDesc: 'Priority side clearance',
+          actionTitle: 'Dynamic Queue Clearance',
+          actionDesc: 'Extend primary green phase by 20% to clear accumulating platoons and display speed advisory on electronic boards.',
+          cssSpeed: '7s',
+          statusClass: 'status-mod'
+        },
+        heavy: {
+          title: 'Heavy Congestion (Simulated)',
+          desc: 'Congestion is high in this simulation. Allow extra travel time and keep intersections clear.',
+          speed: '9 km/h',
+          speedDesc: 'Severe gridlock',
+          wait: '165 sec',
+          waitDesc: 'Multi-cycle delay',
+          fuel: '2.10 L/h',
+          fuelDesc: 'Extreme fuel waste',
+          signal: 'Emergency Preempt',
+          signalDesc: 'Incident diversion',
+          actionTitle: 'Incident Diversion Strategy',
+          actionDesc: 'Reroute feeder traffic onto peripheral ring roads and initiate green corridor preemption for emergency responders.',
+          cssSpeed: '16s',
+          statusClass: 'status-heavy'
+        }
+      };
+
+      const simTabBtns = document.querySelectorAll('.sim-tab-btn');
+      const simStatusBanner = document.getElementById('simStatusBanner');
+      const simStatusTitle = document.getElementById('simStatusTitle');
+      const simStatusDesc = document.getElementById('simStatusDesc');
+      const simSpeed = document.getElementById('simSpeed');
+      const simSpeedDesc = document.getElementById('simSpeedDesc');
+      const simWait = document.getElementById('simWait');
+      const simWaitDesc = document.getElementById('simWaitDesc');
+      const simFuel = document.getElementById('simFuel');
+      const simFuelDesc = document.getElementById('simFuelDesc');
+      const simSignal = document.getElementById('simSignal');
+      const simSignalDesc = document.getElementById('simSignalDesc');
+      const simRecTitle = document.getElementById('simRecTitle');
+      const simRecDesc = document.getElementById('simRecDesc');
+      const roadViewport = document.getElementById('roadViewport');
+
+      function updateSimulation(conditionKey) {
+        const data = SIM_DATA[conditionKey] || SIM_DATA.low;
+
+        // Update active tab buttons
+        simTabBtns.forEach(btn => {
+          const isActive = btn.getAttribute('data-condition') === conditionKey;
+          btn.classList.toggle('active', isActive);
+          btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        });
+
+        // Update status banner text & color
+        if (simStatusBanner) {
+          simStatusBanner.className = `sim-status-banner ${data.statusClass}`;
+        }
+        if (simStatusTitle) simStatusTitle.textContent = data.title;
+        if (simStatusDesc) simStatusDesc.textContent = data.desc;
+
+        // Update metrics
+        if (simSpeed) simSpeed.textContent = data.speed;
+        if (simSpeedDesc) simSpeedDesc.textContent = data.speedDesc;
+
+        if (simWait) simWait.textContent = data.wait;
+        if (simWaitDesc) simWaitDesc.textContent = data.waitDesc;
+
+        if (simFuel) simFuel.textContent = data.fuel;
+        if (simFuelDesc) simFuelDesc.textContent = data.fuelDesc;
+
+        if (simSignal) simSignal.textContent = data.signal;
+        if (simSignalDesc) simSignalDesc.textContent = data.signalDesc;
+
+        if (simRecTitle) simRecTitle.textContent = data.actionTitle;
+        if (simRecDesc) simRecDesc.textContent = data.actionDesc;
+
+        // Update animated road speeds
+        if (roadViewport) {
+          roadViewport.style.setProperty('--sim-speed', data.cssSpeed);
+        }
+
+        // Increment stats
+        incrementStat('solutions');
+      }
+
+      simTabBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+          const condition = this.getAttribute('data-condition');
+          updateSimulation(condition);
+          showToast(`Simulation switched to ${condition.toUpperCase()} congestion`);
+        });
+      });
+
+      /* ------------------------------------------------------------------------
+         10. INITIALIZATION
+         ------------------------------------------------------------------------ */
+      window.addEventListener('DOMContentLoaded', function() {
+        updateStatsDisplay();
+        updateMessageCounter();
+
+        // Set initial bot timestamp
+        const initTime = document.getElementById('initialBotTime');
+        if (initTime) initTime.textContent = formatTimestamp();
+
+        // Initialize simulation to low
+        updateSimulation('low');
+      });
+
+    })();
+  </script>
+</body>
+</html>
